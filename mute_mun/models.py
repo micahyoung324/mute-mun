@@ -1,8 +1,9 @@
 from pygame.math import Vector2
 from pygame.transform import rotozoom
 
-from utils import get_random_velocity, load_sprite, wrap_position
+from utils import get_random_velocity, load_sound, load_sprite, wrap_position
 
+import random
 
 UP = Vector2(0, -1)
 
@@ -29,10 +30,11 @@ class GameObject:
 class Spaceship(GameObject):
     MANEUVERABILITY = 3
     ACCELERATION = 0.25
-    BULLET_SPEED = 3
+    BULLET_SPEED = 5
 
     def __init__(self, position, create_bullet_callback):
         self.create_bullet_callback = create_bullet_callback
+        self.laser_sound = load_sound("laser")
         self.direction = Vector2(UP)
 
         super().__init__(position, load_sprite("spaceship"), Vector2(0))
@@ -57,11 +59,25 @@ class Spaceship(GameObject):
         bullet = Bullet(self.position, bullet_velocity)
 
         self.create_bullet_callback(bullet)
+        self.laser_sound.play()
 
 
 class Asteroid(GameObject):
-    def __init__(self, position):
-        super().__init__(position, load_sprite("asteroid"), get_random_velocity(1, 3))
+    def __init__(self, position, create_asteroid_callback, size=3):
+        self.create_asteroid_callback = create_asteroid_callback
+        self.size = size
+
+        sprite = rotozoom(load_sprite(f"asteroid_{random.randint(1, 3)}_{self.size}"), random.randrange(0, 360), 1)
+
+        super().__init__(position, sprite, get_random_velocity(1, 3))
+
+    def split(self):
+        if self.size > 1:
+            for __ in range(2):
+                asteroid = Asteroid(
+                    self.position, self.create_asteroid_callback, self.size - 1
+                )
+                self.create_asteroid_callback(asteroid)
 
 
 class Bullet(GameObject):

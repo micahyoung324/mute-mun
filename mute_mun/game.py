@@ -1,7 +1,7 @@
 import pygame
 
 from models import Asteroid, Spaceship
-from utils import get_random_position, load_sprite
+from utils import get_random_position
 
 
 class MuteMun:
@@ -10,7 +10,6 @@ class MuteMun:
     def __init__(self):
         self._init_pygame()
         self.screen = pygame.display.set_mode((800, 600))
-        self.background = load_sprite("space", False)
         self.clock = pygame.time.Clock()
 
         self.asteroids = list()
@@ -27,7 +26,7 @@ class MuteMun:
                 ):
                     break
 
-            self.asteroids.append(Asteroid(position))
+            self.asteroids.append(Asteroid(position, self.asteroids.append))
 
     def main_loop(self):
         while True:
@@ -38,6 +37,9 @@ class MuteMun:
     def _init_pygame(self):
         pygame.init()
         pygame.display.set_caption("mute mun")
+        pygame.display.set_icon(
+            pygame.image.load("assets/sprites/spaceship.png")
+        )
 
     def _handle_input(self):
         for event in pygame.event.get():
@@ -78,6 +80,7 @@ class MuteMun:
                     if asteroid.collides_with(bullet):
                         self.asteroids.remove(asteroid)
                         self.bullets.remove(bullet)
+                        asteroid.split()
                         break
 
             for bullet in self.bullets[:]:
@@ -85,7 +88,7 @@ class MuteMun:
                     self.bullets.remove(bullet)
 
     def _draw(self):
-        self.screen.blit(self.background, (0, 0))
+        self.screen.fill((0, 0, 0))
 
         for game_objects in self._get_game_objects():
             game_objects.draw(self.screen)
