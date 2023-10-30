@@ -1,17 +1,31 @@
 import pygame
 
-from models import Spaceship, GameObject
-from utils import load_sprite, wrap_position
+from models import Asteroid, Spaceship
+from utils import get_random_position, load_sprite
 
 
 class MuteMun:
+    MIN_ASTEROID_DISTANCE = 250
+
     def __init__(self):
         self._init_pygame()
         self.screen = pygame.display.set_mode((800, 600))
         self.background = load_sprite("space", False)
         self.clock = pygame.time.Clock()
         self.spaceship = Spaceship((400, 300))
-        self.asteroid = GameObject((400, 300), load_sprite("asteroid"), (1, 0))
+        self.asteroids = list()
+
+        for __ in range(6):
+            while True:
+                position = get_random_position(self.screen)
+
+                if (
+                    position.distance_to(self.spaceship.position)
+                    > self.MIN_ASTEROID_DISTANCE
+                ):
+                    break
+
+            self.asteroids.append(Asteroid(position))
 
     def main_loop(self):
         while True:
@@ -41,12 +55,17 @@ class MuteMun:
             self.spaceship.accelerate()
 
     def _process_game_logic(self):
-        self.spaceship.move(self.screen)
-        self.asteroid.move(self.screen)
+        for game_object in self._get_game_objects():
+            game_object.move(self.screen)
 
     def _draw(self):
         self.screen.blit(self.background, (0, 0))
-        self.spaceship.draw(self.screen)
-        self.asteroid.draw(self.screen)
+
+        for game_objects in self._get_game_objects():
+            game_objects.draw(self.screen)
+
         pygame.display.flip()
         self.clock.tick(60)
+
+    def _get_game_objects(self):
+        return [*self.asteroids, self.spaceship]
