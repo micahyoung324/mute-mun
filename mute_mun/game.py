@@ -1,7 +1,7 @@
 import pygame
 
 from models import Asteroid, Spaceship
-from utils import get_random_position
+from utils import get_random_position, print_text
 
 
 class MuteMun:
@@ -11,6 +11,8 @@ class MuteMun:
         self._init_pygame()
         self.screen = pygame.display.set_mode((800, 600))
         self.clock = pygame.time.Clock()
+        self.font = pygame.font.Font(None, 64)
+        self.message = ""
 
         self.asteroids = list()
         self.bullets = list()
@@ -73,6 +75,7 @@ class MuteMun:
                 for asteroid in self.asteroids:
                     if asteroid.collides_with(self.spaceship):
                         self.spaceship = None
+                        self.message = "pini musi!" # Game over
                         break
 
             for bullet in self.bullets[:]:
@@ -87,11 +90,17 @@ class MuteMun:
                 if not self.screen.get_rect().collidepoint(bullet.position):
                     self.bullets.remove(bullet)
 
+            if not self.asteroids and self.spaceship:
+                self.message = "sina kama nanpa wan!" # You win
+
     def _draw(self):
         self.screen.fill((0, 0, 0))
 
         for game_objects in self._get_game_objects():
             game_objects.draw(self.screen)
+
+        if self.message:
+            print_text(self.screen, self.message, self.font)
 
         pygame.display.flip()
         self.clock.tick(60)
